@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Multijunction solar cell lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#e9eef3;--stage:#f4f8fb;--panel:#fff;--ink:#132033;--mute:#566679;--line:#d4dce5;--acc:#a8600a;--chip:#eef2f6;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b141d;--stage:#0e1b27;--panel:#142231;--ink:#e6edf4;--mute:#97a8ba;--line:#243649;--acc:#e8b04a;--chip:#1b2c3e;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b141d;--stage:#0e1b27;--panel:#142231;--ink:#e6edf4;--mute:#97a8ba;--line:#243649;--acc:#e8b04a;--chip:#1b2c3e;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 390px;height:100%}
+#stage{position:relative;background:var(--stage);overflow:hidden;min-height:340px}
+#stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#stage canvas:active{cursor:grabbing}
+.lab{position:absolute;left:0;top:0;pointer-events:none;font-size:12px;line-height:1.25;white-space:nowrap;padding-left:16px}
+.lab::before{content:"";position:absolute;left:0;top:50%;width:11px;height:2px;margin-top:-1px;background:var(--c)}
+.lab b{display:block;font-weight:600}.lab span{color:var(--mute)}
+.hint{position:absolute;left:16px;bottom:14px;max-width:380px;font-size:12px;color:var(--mute)}
+.hint i{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow:auto;padding:20px 20px 32px}
+h1{font-size:21px;line-height:1.2;margin:0 0 6px;font-weight:600;letter-spacing:-.01em}
+.sub{margin:0 0 16px;color:var(--mute)}
+h2{font-size:13px;font-weight:600;margin:20px 0 8px}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;color:var(--ink);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:5px 9px;cursor:pointer}
+button:hover{border-color:var(--mute)}button[aria-pressed="true"]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.row2{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.jr{margin:8px 0}.jr .top{display:flex;align-items:center;gap:8px}.jr i{width:12px;height:12px;border-radius:3px;flex:none}
+.jr .nm{flex:1;font-weight:500}.jr output{color:var(--mute);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--acc);margin:4px 0 0}
+.opts{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}.opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.eff{display:flex;align-items:baseline;gap:8px;margin-top:6px}
+.eff strong{font-size:46px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.eff span{color:var(--mute)}
+#spec{width:100%;height:150px;display:block}
+.cr{display:grid;grid-template-columns:12px 1fr 52px;gap:8px;align-items:center;margin:6px 0}
+.cr i{width:12px;height:12px;border-radius:3px}.cr em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums;color:var(--mute)}
+.trk{position:relative;height:12px;background:var(--chip);border-radius:3px}.trk b{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.trk u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);text-decoration:none}
+.note{font-size:12px;color:var(--mute);margin:6px 0 0}
+.note summary{cursor:pointer;font-weight:500;color:var(--ink)}.note p{margin:6px 0 0}
+button{white-space:nowrap}
+.stick{position:sticky;top:0;z-index:3;display:flex;align-items:baseline;gap:8px;background:var(--panel);margin:0 -20px 4px;padding:8px 20px;border-bottom:1px solid var(--line)}
+.stick strong{font-size:34px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}.stick .l{font-weight:500}
+.tick{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);margin-top:2px}
+.opts{flex-direction:column;gap:10px}.opts label{align-items:flex-start}.opts input{margin-top:3px}.opts small{display:block;color:var(--mute);font-size:12px}
+.lab.x{font-size:11px}.lab.x b{font-weight:500;color:var(--mute)}
+.seg{display:flex;height:16px;border-radius:4px;overflow:hidden;background:var(--chip)}
+.lg{display:grid;grid-template-columns:12px 1fr auto;gap:4px 8px;margin-top:10px;align-items:center}
+.lg i{width:12px;height:12px;border-radius:3px}.lg em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--mute)}
+@media (max-width:820px){html,body{height:auto}.app{grid-template-columns:1fr;grid-template-rows:60vh auto;height:auto}.panel{border-left:0;border-top:1px solid var(--line);overflow:visible}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="stage">
+    <div class="hint"><i style="background:#8a5cf6"></i>high-energy photon <i style="background:#e0382f;margin-left:8px"></i>low-energy photon. Drag to rotate, scroll to zoom. Red sparks are heat lost when a photon gives up its extra energy.</div>
+  </div>
+  <aside class="panel">
+    <h1>Multijunction solar cell lab</h1>
+    <p class="sub">Each junction absorbs the photons just above its bandgap and passes the rest down. Change the stack and watch where the sunlight goes.</p>
+
+    <div class="stick"><span class="l">Estimated efficiency</span><strong id="eff">0</strong><span>%</span><span class="note" id="effnote" style="margin:0"></span></div>
+    <h2>Quick experiments</h2>
+    <div class="presets" id="tries"></div>
+    <p class="note" id="tip">Tap one to see what it teaches.</p>
+    <h2>1. Pick a cell design</h2>
+    <p class="note" style="margin:0 0 8px">Typical stack layouts. Fine-tune them below.</p>
+    <div class="presets" id="presets"></div>
+
+    <h2>2. Tune each junction</h2>
+    <div class="row2"><span class="note" style="margin:0">Slide to set each junction’s bandgap. A lower bandgap absorbs redder, longer wavelengths. Layers keep their order, top to bottom.</span>
+      <span><button id="rm" aria-label="Remove a junction">− Junction</button> <button id="ad" aria-label="Add a junction">+ Junction</button></span></div>
+    <div id="jlist"></div>
+
+    <h2>3. Concentrate the sunlight: <span id="cv">1×</span></h2>
+    <p class="note" style="margin:0 0 6px">Lenses or mirrors focus sunlight onto a small cell (CPV). More light raises voltage, so efficiency climbs.</p>
+    <input type="range" id="conc" min="0" max="3" step="0.01" value="0" aria-label="Concentration">
+    <div class="tick"><span>1×</span><span>10×</span><span>100×</span><span>1000×</span></div>
+
+    <h2>Options</h2>
+    <div class="opts">
+      <label><input type="checkbox" id="exp"><span>Exploded view<small>Pulls the layers apart and names every one.</small></span></label>
+      <label><input type="checkbox" id="thin" checked><span>Thin top cells to match current<small>What real designers do. Turn off to see raw current mismatch.</small></span></label>
+      <label><input type="checkbox" id="pause"><span>Pause light</span></label>
+    </div>
+
+    <h2>About these numbers</h2>
+    
+    <details class="note"><summary>How accurate is this model?</summary><p><b>Real physics:</b> photons are absorbed only above a bandgap, the excess becomes heat, junctions are in series so current must match, voltage rises with concentration, and the bandgaps and layer order follow real III–V stacks.</p><p><b>Simplified:</b> a 5778 K blackbody replaces the AM1.5G or AM0 spectrum; every photon above a bandgap is absorbed; each junction loses a fixed 0.42 V and the fill factor is fixed at 0.86; there is no temperature, series resistance, radiative recombination or lattice-mismatch damage. Layer thicknesses and photon speeds in 3D are not to scale.</p><p><b>How close:</b> the presets give about 24% (1J GaAs), 32% (3J), 37% (3J inverted metamorphic), 46% (4J at 665 suns) and 42% (6J). The reported records are 47.6% (4J, 665 suns) and 39.5% (6J, 1 sun), so the model is good for trends and can overshoot a little.</p></details>
+
+    <h2>Where the spectrum goes</h2>
+    <canvas id="spec" aria-label="Solar spectrum split between junctions"></canvas>
+    <p class="note">Solid colour is energy turned into usable voltage. Pale colour above it is lost as heat. Grey is below the lowest bandgap and passes through.</p>
+
+    <h2>Current from each junction</h2>
+    <div id="cur"></div>
+    <p class="note">mA/cm² per sun. Each bar is the photocurrent in that junction’s own band. The black marker is the current the whole series stack can carry. With thinning on, top cells pass their surplus down; with it off, the shortest bar limits the stack.</p>
+
+    <h2>Loss budget</h2>
+    <div class="seg" id="seg"></div>
+    <div class="lg" id="lg"></div>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+/* ---------- spectrum + detailed model ---------- */
+const kB=8.617e-5,Tsun=5778,dE=0.01,E0=0.3,NG=421;
+const Eg=[],Jd=[];let tot=0;
+for(let i=0;i<NG;i++){const E=E0+i*dE;const p=E*E/(Math.exp(E/(kB*Tsun))-1);Eg.push(E);Jd.push(p);tot+=E*p*dE}
+const sc=100/tot;for(let i=0;i<NG;i++)Jd[i]*=sc; // mA/cm2/eV for 100 mW/cm2
+const cdf=[];{let a=0;for(let i=0;i<NG;i++){a+=Eg[i]*Jd[i];cdf.push(a)}for(let i=0;i<NG;i++)cdf[i]/=a}
+const sample=()=>{const r=Math.random();let lo=0,hi=NG-1;while(lo<hi){const m=(lo+hi)>>1;cdf[m]<r?lo=m+1:hi=m}return Eg[lo]};
+const bandOf=(E,g)=>{for(let i=0;i<g.length;i++)if(E>=g[i])return i;return -1};
+
+let thin=true;
+function model(g,C){
+  const n=g.length,N=Array(n).fill(0),A=Array(n).fill(0);let below=0;
+  for(let k=0;k<NG;k++){const E=Eg[k],j=Jd[k]*dE*C,b=bandOf(E,g);
+    if(b<0)below+=E*j;else{N[b]+=j;A[b]+=E*j}}
+  const opt=0.94,Np=N.map(x=>x*opt),kT=0.02585;
+  let Jm=Math.min(...Np);
+  if(thin){ // thinned top cells pass surplus photons down: find the largest current every junction can supply
+    const ok=J=>{let c=0;for(let i=0;i<n;i++){const a=Np[i]+c;if(a<J)return false;c=a-J}return true};
+    let lo=0,hi=Math.max(...Np)*n;for(let s=0;s<50;s++){const mid=(lo+hi)/2;ok(mid)?lo=mid:hi=mid}Jm=lo}
+  let V=0,therm=0,optL=0,mis=0,carry=0,cg=0;
+  for(let i=0;i<n;i++){V+=g[i]-0.42+kT*Math.log(C);optL+=A[i]*(1-opt);
+    const a=Np[i]+carry,Ein=A[i]*opt+carry*cg;therm+=Ein-a*g[i];
+    if(thin&&i<n-1){carry=a-Jm;cg=g[i]}else{mis+=(a-Jm)*g[i];carry=0}}
+  const P=Jm*V*0.86,vf=Jm*g.reduce((a,b)=>a+b,0)-P,inc=100*C;
+  return{N:Np.map(x=>x/C),Jm:Jm/C,eff:P/inc*100,loss:[P,vf,mis,optL,therm,below].map(x=>x/inc*100)};
+}
+
+/* ---------- state ---------- */
+const PRE=[
+ {k:'1J GaAs',g:[1.42],c:1},
+ {k:'2J GaInP/GaAs',g:[1.88,1.42],c:1},
+ {k:'3J GaInP/GaAs/Ge',g:[1.88,1.42,0.67],c:1},
+ {k:'3J inverted metamorphic',g:[1.9,1.4,1.0],c:1},
+ {k:'4J at 665 suns',g:[1.9,1.42,1.05,0.72],c:665},
+ {k:'6J at 1 sun',g:[2.1,1.8,1.5,1.2,0.95,0.7],c:1}];
+let gaps=[1.88,1.42,0.67],C=1,presetKey='3J GaInP/GaAs/Ge';
+const defGaps=n=>n==1?[1.42]:Array.from({length:n},(_,i)=>+(2.05-i*(1.35/(n-1))).toFixed(2));
+const name=g=>g>=1.95?'AlGaInP':g>=1.75?'GaInP':g>=1.55?'AlGaAs':g>=1.3?'GaAs':g>=1.1?'GaInAsP':g>=0.85?'GaInAs':'Ge / GaInAs';
+const hue=g=>Math.round(8+clamp((g-0.5)/1.9,0,1)*212);
+const css=g=>`hsl(${hue(g)} 68% 52%)`;
+const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- three.js scene ---------- */
+const stage=$('#stage');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+stage.prepend(renderer.domElement);
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(38,1,.1,100);
+scene.add(new THREE.AmbientLight(0xffffff,.8));
+const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(4,8,6);scene.add(dl);
+const cell=new THREE.Group();scene.add(cell);
+const W=3.2,T=.5;
+let lay=[],tj=[],tops=[],topG,sub,con,labs=[],xl=[],yBot=-4,eNow=0,eTgt=0;
+const box=(w,h,d,col,op,extra)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial(Object.assign({color:col,transparent:op<1,opacity:op,roughness:.45},extra||{})));return m};
+const edge=m=>{m.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry),new THREE.LineBasicMaterial({color:0x8aa0b5,transparent:true,opacity:.45})))};
+
+function rebuild(){
+  while(cell.children.length){const o=cell.children[0];cell.remove(o)}
+  labs.forEach(l=>l.remove());labs=[];lay=[];tj=[];xl.forEach(o=>o.d.remove());xl=[];
+  const n=gaps.length;
+  topG=new THREE.Group();
+  const arc=box(W,.04,W,0x3b6fb6,.35);topG.add(arc);
+  [-1.2,-.4,.4,1.2].forEach(x=>{const f=box(.07,.05,W-.1,0xd9a441,1,{metalness:.6,roughness:.3});f.position.set(x,.05,0);topG.add(f)});
+  const bus=box(W,.07,.16,0xd9a441,1,{metalness:.6,roughness:.3});bus.position.set(0,.06,-1.35);topG.add(bus);
+  cell.add(topG);
+  for(let i=0;i<n;i++){
+    const m=box(W,T,W,0xffffff,.5,{depthWrite:false});m.renderOrder=1;edge(m);cell.add(m);lay.push(m);
+    if(i<n-1){const t=box(W,.04,W,0xdfe6ee,.95);cell.add(t);tj.push(t)}
+    const d=document.createElement('div');d.className='lab';d.innerHTML='<b></b><span></span>';stage.appendChild(d);labs.push(d);
+  }
+  sub=box(W,.5,W,0x6b7785,1);edge(sub);cell.add(sub);
+  con=box(W,.08,W,0xd9a441,1,{metalness:.6,roughness:.3});cell.add(con);
+  const mk=(txt,fn)=>{const d=document.createElement('div');d.className='lab x';d.style.setProperty('--c','#8a9aab');d.innerHTML='<b></b>';d.firstChild.textContent=txt;d.style.opacity=0;stage.appendChild(d);xl.push({d,fn})};
+  mk('Anti-reflection coating and grid contact',()=>topG.position.y+.03);
+  for(let i=0;i<n-1;i++)mk('Tunnel junction',()=>tj[i].position.y);
+  mk('GaAs or Ge substrate',()=>sub.position.y);
+  mk('Back metal contact',()=>con.position.y);
+  layout(eNow);pool.forEach(p=>p.s=0);
+}
+function layout(e){
+  const s=.08+e*.7;let y=0;n=gaps.length;
+  topG.position.y=.03+e*.5;
+  for(let i=0;i<n;i++){lay[i].position.y=y-T/2;tops[i]=y;y-=T;if(i<n-1){tj[i].position.y=y-s/2;y-=s}}
+  sub.position.y=y-s-.25;y-=s+.5;con.position.y=y-.04-e*.3;yBot=con.position.y-.05;
+}
+let n=3;
+
+/* photons */
+const NP=420,pos=new Float32Array(NP*3),col=new Float32Array(NP*3);
+const geo=new THREE.BufferGeometry();
+geo.setAttribute('position',new THREE.BufferAttribute(pos,3));geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+const pts=new THREE.Points(geo,new THREE.PointsMaterial({size:.17,vertexColors:true,transparent:true,opacity:.95,depthWrite:false}));
+pts.frustumCulled=false;pts.renderOrder=5;scene.add(pts);
+const pool=Array.from({length:NP},()=>({s:0,x:0,y:-999,z:0}));
+const tmp=new THREE.Color();
+function eCol(E,c){
+  if(E<1.65)tmp.setHSL(.99,.75,.3+.15*(E-.3)/1.35);
+  else if(E>3.26)tmp.setHSL(.75,.8,.72);
+  else tmp.setHSL(.75*(E-1.65)/1.61*1.0,.95,.5);
+  if(E>=1.65&&E<=3.26)tmp.setHSL(.75*(E-1.65)/1.61,.95,.5);
+  c.r=tmp.r;c.g=tmp.g;c.b=tmp.b;
+}
+const setC=(p,r,g,b)=>{const i=pool.indexOf(p)*3;col[i]=r;col[i+1]=g;col[i+2]=b};
+let acc=0;const glow=[];
+function spawn(){
+  const p=pool.find(q=>q.s==0);if(!p)return;
+  const E=sample(),b=bandOf(E,gaps),w=W/2-.15;
+  p.s=1;p.E=E;p.b=b;p.u=.15+Math.random()*.7;p.x=(Math.random()*2-1)*w;p.z=(Math.random()*2-1)*w;p.y=4.2+Math.random()*.6;p.vy=-6.2;
+  p.ex=b>=0?E-gaps[b]:0;
+  const c={};eCol(E,c);setC(p,c.r,c.g,c.b);
+}
+function step(dt){
+  acc+=dt*(60+55*Math.log10(C));while(acc>1){spawn();acc--}
+  for(let k=0;k<NP;k++){const p=pool[k];
+    if(p.s==1){p.y+=p.vy*dt;
+      if(p.b>=0){const ay=tops[p.b]-p.u*T;if(p.y<=ay){p.y=ay;p.s=2;p.t=.16;setC(p,1,1,1);glow[p.b]=1}}
+      else if(p.y<yBot-.4)p.s=0;
+    }else if(p.s==2){p.t-=dt;if(p.t<=0){if(p.ex>.12){p.s=3;p.t=.7;p.vy=.8+Math.random();setC(p,.95,.28,.15)}else p.s=0}}
+    else if(p.s==3){p.y+=p.vy*dt;p.x+=(Math.random()-.5)*.05;p.t-=dt;if(p.t<=0)p.s=0}
+    const i=k*3;pos[i]=p.x;pos[i+1]=p.s?p.y:-999;pos[i+2]=p.z;
+  }
+  geo.attributes.position.needsUpdate=true;geo.attributes.color.needsUpdate=true;
+}
+
+/* camera (manual orbit) */
+let th=.8,ph=1.2,rad=15,drag=null;
+const el=renderer.domElement;
+el.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};el.setPointerCapture(e.pointerId)});
+el.addEventListener('pointermove',e=>{if(!drag)return;th-=(e.clientX-drag.x)*.008;ph=clamp(ph-(e.clientY-drag.y)*.006,.25,1.65);drag={x:e.clientX,y:e.clientY}});
+['pointerup','pointercancel'].forEach(t=>el.addEventListener(t,()=>drag=null));
+el.addEventListener('wheel',e=>{e.preventDefault();rad=clamp(rad*(1+e.deltaY*.001),8,32)},{passive:false});
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(stage);
+
+/* ---------- UI ---------- */
+const pre=$('#presets'),jl=$('#jlist');
+PRE.forEach(p=>{const b=document.createElement('button');b.textContent=p.k;b.dataset.k=p.k;b.onclick=()=>{apply(p.g,p.c,p.k);$('#tip').textContent='Loaded '+p.k+'. Drag any slider to modify it.'};pre.appendChild(b)});
+function buildJ(){
+  jl.innerHTML='';
+  gaps.forEach((g,i)=>{
+    const d=document.createElement('div');d.className='jr';
+    d.innerHTML=`<div class="top"><i></i><span class="nm"></span><output></output></div><input type="range" min="0.5" max="2.4" step="0.01" aria-label="Bandgap of junction ${i+1}">`;
+    const r=d.querySelector('input');r.value=g;
+    r.oninput=()=>{const hi=i>0?gaps[i-1]-.05:2.4,lo=i<gaps.length-1?gaps[i+1]+.05:.5;const v=clamp(+r.value,lo,hi);r.value=v;gaps[i]=v;presetKey=null;update()};
+    jl.appendChild(d);
+  });
+}
+$('#ad').onclick=()=>{if(gaps.length<6){gaps=defGaps(gaps.length+1);presetKey=null;buildJ();rebuild();update()}};
+$('#rm').onclick=()=>{if(gaps.length>1){gaps=defGaps(gaps.length-1);presetKey=null;buildJ();rebuild();update()}};
+$('#conc').oninput=e=>{C=Math.pow(10,+e.target.value);presetKey=null;update()};
+$('#exp').onchange=e=>eTgt=e.target.checked?1:0;
+let paused=matchMedia('(prefers-reduced-motion: reduce)').matches;$('#pause').checked=paused;
+$('#pause').onchange=e=>paused=e.target.checked;
+
+function apply(g,c,k,t){gaps=g.slice();C=c;presetKey=k;thin=t!==false;$('#thin').checked=thin;$('#conc').value=Math.log10(C);buildJ();rebuild();update()}
+$('#thin').onchange=e=>{thin=e.target.checked;update()};
+const TRY=[
+ ['Single-junction losses',()=>apply([1.42],1,'1J GaAs'),'One GaAs junction. Blue photons lose most of their energy as heat (red sparks) and low-energy light passes through unused (grey on the spectrum).'],
+ ['Add junctions',()=>apply([1.88,1.42,0.67],1,'3J GaInP/GaAs/Ge'),'Three junctions share the spectrum, so both losses shrink. Press “+ Junction” to keep going.'],
+ ['Break current matching',()=>apply([1.88,1.2,0.67],1,null,false),'Thinning is off. The shortest bar sets the current for the whole stack and the surplus in other junctions is wasted. Tick “Thin top cells” to recover it.'],
+ ['Concentrate 665×',()=>apply([1.9,1.42,1.05,0.72],665,'4J at 665 suns'),'Concentration raises every junction’s voltage, so efficiency rises. Slide concentration back to 1× to compare.'],
+ ['Go to 6 junctions',()=>apply([2.1,1.8,1.5,1.2,0.95,0.7],1,'6J at 1 sun'),'More junctions waste less light, but each one adds growth cost and makes current matching harder.']];
+const trEl=$('#tries');TRY.forEach(t=>{const b=document.createElement('button');b.textContent=t[0];b.onclick=()=>{t[1]();$('#tip').textContent=t[2]};trEl.appendChild(b)});
+const LOSS=[['Converted to power','#2e9e6b'],['Voltage and fill factor','#7b6bd6'],['Current mismatch','#e0a030'],['Reflection and shading','#7f8d9c'],['Thermalisation heat','#dc4b34'],['Below the lowest bandgap','#4d93d9']];
+let M;
+function update(){
+  M=model(gaps,C);
+  const rows=jl.children;
+  gaps.forEach((g,i)=>{rows[i].querySelector('i').style.background=css(g);rows[i].querySelector('.nm').textContent=name(g);rows[i].querySelector('output').textContent=g.toFixed(2)+' eV · up to '+Math.round(1240/g)+' nm'});
+  lay.forEach((m,i)=>{const c=new THREE.Color().setHSL(hue(gaps[i])/360,.68,.52);m.material.color.copy(c);m.material.emissive.copy(c)});
+  labs.forEach((l,i)=>{l.style.setProperty('--c',css(gaps[i]));l.children[0].textContent=`${name(gaps[i])} · ${gaps[i].toFixed(2)} eV`;l.children[1].textContent=`${M.N[i].toFixed(1)} mA/cm² per sun`});
+  $('#cv').textContent=(C<10?C.toFixed(1):Math.round(C))+'×';
+  $('#eff').textContent=M.eff.toFixed(1);
+  $('#effnote').textContent=`${gaps.length} junction${gaps.length>1?'s':''}, ${C<10?C.toFixed(1):Math.round(C)} sun${C>1.05?'s':''}`;
+  pre.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===presetKey));
+  const mx=Math.max(...M.N)*1.08;
+  $('#cur').innerHTML=M.N.map((v,i)=>`<div class="cr"><i style="background:${css(gaps[i])}"></i><div class="trk"><b style="width:${v/mx*100}%;background:${css(gaps[i])}"></b><u style="left:${M.Jm/mx*100}%"></u></div><em>${v.toFixed(1)}</em></div>`).join('');
+  $('#seg').innerHTML=M.loss.map((v,i)=>`<div style="width:${Math.max(v,0)}%;background:${LOSS[i][1]}"></div>`).join('');
+  $('#lg').innerHTML=M.loss.map((v,i)=>`<i style="background:${LOSS[i][1]}"></i><span>${LOSS[i][0]}</span><em>${v.toFixed(1)}%</em>`).join('');
+  drawSpec();
+}
+function drawSpec(){
+  const c=$('#spec'),x=c.getContext('2d'),w=c.clientWidth,h=c.clientHeight,r=devicePixelRatio||1;
+  c.width=w*r;c.height=h*r;x.setTransform(r,0,0,r,0,0);x.clearRect(0,0,w,h);
+  const e0=.3,e1=4.2,L=6,R=w-6,base=h-22,top=6;let mxY=0;
+  for(let k=0;k<NG;k++)mxY=Math.max(mxY,Eg[k]*Jd[k]);
+  const X=E=>L+(E-e0)/(e1-e0)*(R-L),bw=dE/(e1-e0)*(R-L)+.7,Y=v=>(base-top)*v/mxY*.95;
+  for(let k=0;k<NG;k++){const E=Eg[k];if(E>e1)break;const b=bandOf(E,gaps),f=Eg[k]*Jd[k];
+    if(b<0){x.fillStyle=cv('--mute');x.globalAlpha=.4;x.fillRect(X(E),base-Y(f),bw,Y(f))}
+    else{x.fillStyle=css(gaps[b]);x.globalAlpha=.28;x.fillRect(X(E),base-Y(f),bw,Y(f));x.globalAlpha=1;const u=f*gaps[b]/E;x.fillRect(X(E),base-Y(u),bw,Y(u))}}
+  x.globalAlpha=1;x.strokeStyle=cv('--ink');x.lineWidth=1;x.setLineDash([3,3]);
+  gaps.forEach(g=>{x.beginPath();x.moveTo(X(g),top);x.lineTo(X(g),base);x.stroke()});
+  x.setLineDash([]);x.fillStyle=cv('--mute');x.font='11px "Instrument Sans",system-ui,sans-serif';x.textAlign='center';
+  [1,2,3,4].forEach(E=>x.fillText(E+' eV',X(E),h-6));
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>update());
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(t){
+  const dt=Math.min((t-last)/1000,.05);last=t;
+  if(Math.abs(eNow-eTgt)>.002){eNow+=(eTgt-eNow)*Math.min(1,dt*6);layout(eNow)}
+  if(!paused)step(dt);
+  lay.forEach((m,i)=>{glow[i]=(glow[i]||0)*Math.pow(.02,dt);m.material.emissiveIntensity=glow[i]*.8});
+  const ty=yBot/2;
+  const R=rad*(.75-yBot*.07);cam.position.set(R*Math.sin(ph)*Math.sin(th),ty+R*Math.cos(ph),R*Math.sin(ph)*Math.cos(th));
+  cam.lookAt(0,ty,0);renderer.render(scene,cam);
+  const w=stage.clientWidth,h=stage.clientHeight,v=new THREE.Vector3();
+  labs.forEach((l,i)=>{v.set(W/2+.05,tops[i]-T/2,W/2*0);v.applyMatrix4(cell.matrixWorld).project(cam);
+    l.style.transform=`translate(${(v.x*.5+.5)*w}px,${(-v.y*.5+.5)*h}px) translateY(-50%)`});
+  const xa=clamp((eNow-.25)*2,0,1);
+  xl.forEach(o=>{v.set(W/2+.05,o.fn(),0).applyMatrix4(cell.matrixWorld).project(cam);o.d.style.opacity=xa;o.d.style.transform=`translate(${(v.x*.5+.5)*w}px,${(-v.y*.5+.5)*h}px) translateY(-50%)`});
+  requestAnimationFrame(frame);
+}
+buildJ();rebuild();resize();update();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
